@@ -17,36 +17,17 @@
 # Configuration
 ##################################################
 
-# Keys to identify the databases the script can work with. It is used to iterate over the databases.
-declare  -a DB_KEYS=("md")
+# Load the configuration file
+readonly CONFIG_FILE_NAME="mysqldumpgz-config.sh"
 
-# This associative array contains information related to a database that the script can work with.
-# The key of each element is the database key + the name of the property.
-# You can add more databases by adding more elements to the DB_KEYS array and adding more elements to this array.
-declare -A DB_CONFIG=(
-    # Example database "my_database"
-    ["md""short_flag"]="-m"           # Short flag
-    ["md""long_flag"]="--my-database" # Long flag
-    ["md""show_name"]="My Database"   # Name that is shown in the logs
-    ["md""db_name"]="my_database"     # Database name
-    ["md""file_suffix"]="_myDB"       # File suffix
-)
+readonly CONFIG_FILE_PATH="${BASH_SOURCE%/*}/${CONFIG_FILE_NAME}"
 
-# Default values
-readonly DEFAULT_DATE_FORMAT="+%Y-%m-%d"
-readonly DEFAULT_DUMP_FOLDER="/home/user/dumps/"
-readonly DEFAULT_DB_USER="root"
-readonly DEFAULT_SYS_USER="user"
-readonly DEFAULT_SYS_GROUP="user"
-readonly REQUIRE_ROOT=false
-
-# Exit codes
-readonly EXIT_ERROR_USER_NOT_ROOT=1
-readonly EXIT_ERROR_ARGS=2
-readonly EXIT_ERROR_COMMAND_NOT_FOUND=3
-readonly EXIT_ERROR_MYSQLDUMP=11
-readonly EXIT_ERROR_GZIP=12
-readonly EXIT_ERROR_CHOWN=13
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    source "$CONFIG_FILE_PATH"
+else
+    echo "ERROR: configuration file $CONFIG_FILE_PATH not found"
+    exit 1
+fi
 
 ##################################################
 # Functions
@@ -70,6 +51,7 @@ function show_help() {
     echo "  --config           Shows the configuration."
     echo "  -h,  --help        Shows this help."
     echo "  -s   --simulate    Shows the commands that extract the dump but does not execute them."
+    echo "  -y,  --yes         Answers yes to all questions."
     echo ""
     echo "Database selection:"
     echo ""
@@ -226,6 +208,23 @@ function can_create_file() {
 }
 
 #######################################
+# Ask for confirmation before doing something.
+# Arguments:
+#   Message
+# Returns:
+#   0 if the user confirms, 1 if the user cancels.
+#######################################
+function ask_yes_no() {
+    local msg=$1
+    read -r -p "${msg} [y/N] " answer
+    if [[ $answer =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+#######################################
 # Shows a spinner while background tasks are running.
 # It must be called with & to run it in the background
 # Remember to save the PID of the process and kill it when the background tasks finish
@@ -362,6 +361,7 @@ function main() {
     local exit_value=0        # exit value
     local simulate=false      # if true, only show the commands to execute
     local db_password=""      # password of the database
+    local default_answer_yes=false # if true, answer yes to all questions
 
     # Check if the script requires and is running as root
     if [ "${REQUIRE_ROOT}" == true ] && [ "${EUID}" -ne 0 ]; then
@@ -387,6 +387,10 @@ function main() {
             ;;
         -s | --simulate) # simulate
             simulate=true
+            shift
+            ;;
+        -y | --yes) # answer yes to all questions
+            default_answer_yes=true
             shift
             ;;
         --check) # check
@@ -443,10 +447,26 @@ function main() {
             get_dump "${DEFAULT_DB_USER}" "${db_password}" "${dbKey}" "${simulate}"
         done
     else
-        # Enter the database password
-        read -r -p "Enter password for ${DEFAULT_DB_USER} database user: " \
-            -s db_password
-        echo ""
+        # If the database password is not specified in the configuration file
+        if [ "${DEFAULT_DB_PASSWORD}" == "" ]; then
+            # Ask for the password
+            read -r -p "Enter password for ${DEFAULT_DB_USER} database user: " \
+                -s db_password
+            echo ""
+        else
+            db_password="${DEFAULT_DB_PASSWORD}"
+        fi
+
+        # Ask for confirmation listing the databases to extract
+        if [ $default_answer_yes == false ]; then
+            echo "The following databases will be extracted:"
+            for dbKey in "${dbs_to_extract[@]}"; do
+                echo "    ${DB_CONFIG[${dbKey}db_name]}"
+            done
+            if ! ask_yes_no "Are you sure?"; then
+                exit 0
+            fi
+        fi
 
         # Extracts the dumps (parallel)
         for dbKey in "${dbs_to_extract[@]}"; do

@@ -12,7 +12,7 @@ This bash script automates the process of creating *MySQL* database backups usin
 
 ## How it works
 
-The script uses the configuration defined in the constants in the `Configuration` section, and it verifies that the file names are valid and can be created.
+The script uses the configuration defined in the constants in the `mysqldumpgz-config.sh` file, and it verifies that the file names are valid and can be created.
 
 The `mysqldump` command is used to extract a dump. The file name is generated using the current date and a customizable suffix. The extraction is executed in the background, so the script can extract multiple databases at the same time.
 
@@ -25,7 +25,9 @@ To install the script, you can copy it to a folder and add it to your `PATH` env
 ```bash
 cd ~/your-scripts-folder
 wget https://raw.github.com/JotaJota96/mysqldumpgz/master/mysqldumpgz.sh
-chmod u+x mysqldumpgz.sh
+wget https://raw.github.com/JotaJota96/mysqldumpgz/master/mysqldumpgz-config.sh
+chmod 600 mysqldumpgz-config.sh 
+chmod 700 mysqldumpgz.sh
 mv mysqldumpgz.sh mysqldumpgz
 ```
 
@@ -42,7 +44,7 @@ Execute `mysqldumpgz --check` to verify that the script is installed correctly:
 
 ## Configuration
 
-To configure the script, it is necessary to modify the values of the constants defined at the beginning of the script, in the `Configuration` section.
+To configure the script, it is necessary to modify the values of the constants defined in the `mysqldumpgz-config.sh` file.
 
 - `DB_KEYS`: Keys to identify the databases the script can work with. It is used within the script to be able to access the values specified in `DB_CONFIG`.
 - `DB_CONFIG`: Contains information related to each database that the script can work with.
@@ -58,7 +60,8 @@ You can also modify the following constants:
 
 - `DEFAULT_DATE_FORMAT`: Date format used to generate the file name.
 - `DEFAULT_DUMP_FOLDER`: Folder where the backups will be stored.
-- `DEFAULT_DB_USER`: Database user used to extract the backups (Password will be required when executing the script)
+- `DEFAULT_DB_USER`: Database user used to extract the backups.
+- `DEFAULT_DB_PASSWORD`: Password of the database user. If it is not specified, the script will ask for it.
 - `DEFAULT_SYS_USER`: User that will own the backups.
 - `DEFAULT_SYS_GROUP`: Group that will own the backups.
 - `REQUIRE_ROOT`: If `true`, the script will require root privileges to execute.
@@ -71,6 +74,7 @@ You can also modify the following constants:
 - `--config`: Shows the configuration.
 - `-h`, `--help`: Shows this help.
 - `-s`, `--simulate`: Shows the commands that extract the dump but does not execute them.
+- `-y`, `--yes`: Answers yes to all the questions asked by the script.
 - `-a`, `--all`: Extracts all the databases.
 
 If there are configured databases, you can use your short or long flag to extract the corresponding database.
