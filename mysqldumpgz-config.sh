@@ -19,6 +19,7 @@ declare -A DB_CONFIG=(
 readonly DEFAULT_DATE_FORMAT="+%Y-%m-%d"
 readonly DEFAULT_DUMP_FOLDER="/home/user/dumps/"
 readonly DEFAULT_DB_USER="root"
+readonly DEFAULT_DB_PASSWORD=""
 readonly DEFAULT_SYS_USER="user"
 readonly DEFAULT_SYS_GROUP="user"
 readonly REQUIRE_ROOT=false

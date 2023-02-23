@@ -60,7 +60,8 @@ You can also modify the following constants:
 
 - `DEFAULT_DATE_FORMAT`: Date format used to generate the file name.
 - `DEFAULT_DUMP_FOLDER`: Folder where the backups will be stored.
-- `DEFAULT_DB_USER`: Database user used to extract the backups (Password will be required when executing the script)
+- `DEFAULT_DB_USER`: Database user used to extract the backups.
+- `DEFAULT_DB_PASSWORD`: Password of the database user. If it is not specified, the script will ask for it.
 - `DEFAULT_SYS_USER`: User that will own the backups.
 - `DEFAULT_SYS_GROUP`: Group that will own the backups.
 - `REQUIRE_ROOT`: If `true`, the script will require root privileges to execute.
@@ -73,6 +74,7 @@ You can also modify the following constants:
 - `--config`: Shows the configuration.
 - `-h`, `--help`: Shows this help.
 - `-s`, `--simulate`: Shows the commands that extract the dump but does not execute them.
+- `-y`, `--yes`: Answers yes to all the questions asked by the script.
 - `-a`, `--all`: Extracts all the databases.
 
 If there are configured databases, you can use your short or long flag to extract the corresponding database.
