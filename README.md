@@ -60,6 +60,7 @@ You can also modify the following constants:
 
 - `DEFAULT_DATE_FORMAT`: Date format used to generate the file name.
 - `DEFAULT_DUMP_FOLDER`: Folder where the backups will be stored.
+- `DEFAULT_ORGANIZE_BY_DATE`: If `true`, the backups will be stored in folders named with the year and month of the backup.
 - `DEFAULT_DB_USER`: Database user used to extract the backups.
 - `DEFAULT_DB_PASSWORD`: Password of the database user. If it is not specified, the script will ask for it.
 - `DEFAULT_SYS_USER`: User that will own the backups.

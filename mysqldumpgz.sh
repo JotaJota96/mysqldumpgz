@@ -157,6 +157,7 @@ function check_script() {
 #   DB_CONFIG
 #   DEFAULT_DATE_FORMAT
 #   DEFAULT_DUMP_FOLDER
+#   DEFAULT_ORGANIZE_BY_DATE
 #   DEFAULT_DB_USER
 #   DEFAULT_SYS_USER
 #   DEFAULT_SYS_GROUP
@@ -176,11 +177,15 @@ function show_config() {
         echo  "    file_suffix: ${DB_CONFIG[${dbKey}file_suffix]}"
     done
     echo ""
-    echo "DEFAULT_DATE_FORMAT=${DEFAULT_DATE_FORMAT}"
-    echo "DEFAULT_DUMP_FOLDER=${DEFAULT_DUMP_FOLDER}"
-    echo "DEFAULT_DB_USER=${DEFAULT_DB_USER}"
-    echo "DEFAULT_SYS_USER=${DEFAULT_SYS_USER}"
-    echo "DEFAULT_SYS_GROUP=${DEFAULT_SYS_GROUP}"
+    # Print all constants whcich start with DEFAULT_
+    for var in $(compgen -A variable | grep '^DEFAULT_'); do
+        # if DEFAULT_DB_PASSWORD, don't show the value
+        if [[ $var == "DEFAULT_DB_PASSWORD" ]]; then
+            echo "$var: ********"
+        else
+            echo "$var: ${!var}"
+        fi
+    done
 }
 
 #######################################
@@ -268,9 +273,22 @@ function get_dump() {
     local show_name=${DB_CONFIG[${db_key}show_name]}
     local db_name=${DB_CONFIG[${db_key}db_name]}
     local file_suffix=${DB_CONFIG[${db_key}file_suffix]}
+    local dump_folder="${DEFAULT_DUMP_FOLDER}"
     local today
     today=$(date $DEFAULT_DATE_FORMAT)
-    local file_sql="${DEFAULT_DUMP_FOLDER}${today}${file_suffix}.sql"
+    # if the configuration specifies to organize the dumps in folders by date
+    if [ "${DEFAULT_ORGANIZE_BY_DATE}" = true ]; then
+        local year
+        local month
+        year=$(date +%Y)
+        month=$(date +%m)
+        dump_folder="${dump_folder}${year}/${month}/"
+        # create the folder if it doesn't exist
+        if [ ! -d "${dump_folder}" ]; then
+            mkdir -p "${dump_folder}"
+        fi
+    fi
+    local file_sql="${dump_folder}${today}${file_suffix}.sql"
     # if the configuration specifies a file name, use it
     if [ "${DB_CONFIG[${db_key}output_file]}" != "" ]; then
         file_sql="${DB_CONFIG[${db_key}output_file]}"
