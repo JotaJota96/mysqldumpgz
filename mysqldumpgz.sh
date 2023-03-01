@@ -177,12 +177,15 @@ function show_config() {
         echo  "    file_suffix: ${DB_CONFIG[${dbKey}file_suffix]}"
     done
     echo ""
-    echo "DEFAULT_DATE_FORMAT=${DEFAULT_DATE_FORMAT}"
-    echo "DEFAULT_DUMP_FOLDER=${DEFAULT_DUMP_FOLDER}"
-    echo "DEFAULT_ORGANIZE_BY_DATE=${DEFAULT_ORGANIZE_BY_DATE}"
-    echo "DEFAULT_DB_USER=${DEFAULT_DB_USER}"
-    echo "DEFAULT_SYS_USER=${DEFAULT_SYS_USER}"
-    echo "DEFAULT_SYS_GROUP=${DEFAULT_SYS_GROUP}"
+    # Print all constants whcich start with DEFAULT_
+    for var in $(compgen -A variable | grep '^DEFAULT_'); do
+        # if DEFAULT_DB_PASSWORD, don't show the value
+        if [[ $var == "DEFAULT_DB_PASSWORD" ]]; then
+            echo "$var: ********"
+        else
+            echo "$var: ${!var}"
+        fi
+    done
 }
 
 #######################################
