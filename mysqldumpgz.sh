@@ -158,6 +158,8 @@ function check_script() {
 #   DEFAULT_DATE_FORMAT
 #   DEFAULT_DUMP_FOLDER
 #   DEFAULT_ORGANIZE_BY_DATE
+#   DEFAULT_HOST
+#   DEFAULT_PORT
 #   DEFAULT_DB_USER
 #   DEFAULT_SYS_USER
 #   DEFAULT_SYS_GROUP
@@ -267,9 +269,11 @@ function show_spinner() {
 #   0 if the dump was extracted successfully, an error code otherwise.
 #######################################
 function get_dump() {
-    local db_user="$1"
-    local db_pass="$2"
-    local db_key=$3
+    local host=$1
+    local port=$2
+    local db_user="$3"
+    local db_pass="$4"
+    local db_key=$5
     local show_name=${DB_CONFIG[${db_key}show_name]}
     local db_name=${DB_CONFIG[${db_key}db_name]}
     local file_suffix=${DB_CONFIG[${db_key}file_suffix]}
@@ -294,10 +298,10 @@ function get_dump() {
         file_sql="${DB_CONFIG[${db_key}output_file]}"
     fi
     local file_gz="${file_sql}.gz"
-    local simulate=$4
+    local simulate=$6
 
     # save the commands to execute in variables
-    local cmd_mysqldump="mysqldump -u ${db_user} -p${db_pass} --databases ${db_name}"
+    local cmd_mysqldump="mysqldump -h ${host} -P ${port} -u ${db_user} -p${db_pass} --databases ${db_name}"
     local cmd_gzip="gzip ${file_sql}"
     local cmd_chown="chown ${DEFAULT_SYS_USER}:${DEFAULT_SYS_GROUP} ${file_gz}"
 
@@ -462,7 +466,7 @@ function main() {
     if [ $simulate == true ]; then
         # Show the commands to extract each dump
         for dbKey in "${dbs_to_extract[@]}"; do
-            get_dump "${DEFAULT_DB_USER}" "${db_password}" "${dbKey}" "${simulate}"
+            get_dump "${DEFAULT_HOST}" "${DEFAULT_PORT}" "${DEFAULT_DB_USER}" "${db_password}" "${dbKey}" "${simulate}"
         done
     else
         # If the database password is not specified in the configuration file
@@ -488,7 +492,7 @@ function main() {
 
         # Extracts the dumps (parallel)
         for dbKey in "${dbs_to_extract[@]}"; do
-            get_dump "${DEFAULT_DB_USER}" "${db_password}" "${dbKey}" "${simulate}" &
+            get_dump "${DEFAULT_HOST}" "${DEFAULT_PORT}" "${DEFAULT_DB_USER}" "${db_password}" "${dbKey}" "${simulate}" &
             pids+=("$!")
         done
 
