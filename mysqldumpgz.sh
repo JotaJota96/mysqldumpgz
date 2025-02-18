@@ -20,7 +20,9 @@
 # Load the configuration file
 readonly CONFIG_FILE_NAME="mysqldumpgz-config.sh"
 
-readonly CONFIG_FILE_PATH="${BASH_SOURCE%/*}/${CONFIG_FILE_NAME}"
+readonly SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
+readonly SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+readonly CONFIG_FILE_PATH="${SCRIPT_DIR}/${CONFIG_FILE_NAME}"
 
 if [ -f "$CONFIG_FILE_PATH" ]; then
     source "$CONFIG_FILE_PATH"
